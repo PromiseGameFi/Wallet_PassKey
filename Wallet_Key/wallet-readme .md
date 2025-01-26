@@ -45,3 +45,10 @@ A secure cryptocurrency wallet using passkey authentication and hierarchical det
  - go mod init passkey-wallet
  - go mod tidy
  - go run main.go
+
+3. Frontend setup
+
+# In frontend directory
+  - npm init -y
+  - npm install react react-dom
+  - npm start
