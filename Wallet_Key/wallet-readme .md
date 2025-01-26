@@ -36,3 +36,12 @@ A secure cryptocurrency wallet using passkey authentication and hierarchical det
    - Passkey-based login
    - Biometric/Hardware key support
    - Secure key retrieval
+
+## To run the project:
+1. Install Go and Node.js
+2. Backend setup:
+
+# In backend directory
+ - go mod init passkey-wallet
+ - go mod tidy
+go run main.go
