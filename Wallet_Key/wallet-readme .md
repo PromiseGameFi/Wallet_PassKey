@@ -44,4 +44,4 @@ A secure cryptocurrency wallet using passkey authentication and hierarchical det
 # In backend directory
  - go mod init passkey-wallet
  - go mod tidy
-go run main.go
+ - go run main.go
