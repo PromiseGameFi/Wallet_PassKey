@@ -52,3 +52,9 @@ A secure cryptocurrency wallet using passkey authentication and hierarchical det
   - npm init -y
   - npm install react react-dom
   - npm start
+
+4. Prerequisites:
+
+  - Go 1.20+
+  - Node.js 16+
+  - npm/yarn
