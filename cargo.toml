@@ -11,7 +11,7 @@ webauthn-rs = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 blake3 = "1.5"
 openssl = { version = "0.10", features = ["vendored"] }
-openssl-sys v0.9.104
+openssl-sys = "0.9.104"
 
 [dev-dependencies]
 proptest = "1.0"
