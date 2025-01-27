@@ -39,6 +39,8 @@ func (w *HDWallet) CreatePasskey(passkey []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(firstAddress), nil
 }
 
+
+
 func (w *HDWallet) DeriveAddress(index uint32) (string, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
