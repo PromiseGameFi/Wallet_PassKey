@@ -62,6 +62,7 @@ func (w *HDWallet) deriveAddress(index uint32) []byte {
 	return publicKey
 }
 
+
 func (w *HDWallet) RemoveAddress(index uint32) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
