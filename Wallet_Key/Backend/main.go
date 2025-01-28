@@ -29,7 +29,8 @@ func main() {
 	}
 
 	// List all addresses
-	
+
 	addresses := hdWallet.ListAddresses()
 	fmt.Println("All Addresses:", addresses)
+	
 }
