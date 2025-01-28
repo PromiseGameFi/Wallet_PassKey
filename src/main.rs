@@ -80,16 +80,6 @@ impl HDWallet {
             .context("No existing wallet found")
     }
 
-    pub fn derive_address(&mut self, path: DerivationPath) -> Result<Keypair> {
-        let child_key = self.master_key.derive_child_key(path)?;
-        let keypair = Keypair::from_bytes(&child_key.to_bytes())?;
-        
-        // Store derived address
-        let index = self.derived_addresses.len() as u32;
-        self.derived_addresses.insert(index, keypair.clone());
-
-        Ok(keypair)
-    }
 
     pub fn remove_address(&mut self, index: u32) -> Result<()> {
         self.derived_addresses.remove(&index)
