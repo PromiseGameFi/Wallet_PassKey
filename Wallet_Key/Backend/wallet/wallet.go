@@ -73,7 +73,7 @@ func (w *HDWallet) RemoveAddress(index uint32) error {
 func (w *HDWallet) ListAddresses() []string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-
+ 
 	addresses := make([]string, 0, len(w.derivedKeys))
 	for _, pubKey := range w.derivedKeys {
 		addresses = append(addresses, base64.StdEncoding.EncodeToString(pubKey))
