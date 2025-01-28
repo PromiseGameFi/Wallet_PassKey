@@ -9,6 +9,7 @@ func main() {
 	// Create wallet
 	hdWallet := wallet.NewHDWallet()
 
+	
 	// Create passkey and first address
 	firstAddress, err := hdWallet.CreatePasskey([]byte("myStrongPasskey"))
 	if err != nil {
