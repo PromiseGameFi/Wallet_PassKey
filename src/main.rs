@@ -97,20 +97,7 @@ impl HDWallet {
         Ok(())
     }
 
-    fn generate_seed_from_passkey(passkey: &[u8]) -> Result<Seed> {
-        // Simple seed generation - replace with a more secure method
-        let seed = blake3::hash(passkey);
-        Ok(Seed::new(seed.as_bytes()))
-    }
-
-    fn load_or_create_config() -> Result<WalletConfig> {
-        // In a real app, implement persistent storage
-        Ok(WalletConfig {
-            passkey_created: false,
-            master_public_key: None,
-        })
-    }
-
+    
     fn save_config(config: &WalletConfig) -> Result<()> {
         // Implement persistent storage
         Ok(())
