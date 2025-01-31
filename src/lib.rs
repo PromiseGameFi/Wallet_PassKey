@@ -1,115 +1,142 @@
-use std::collections::HashMap;
-use anyhow::{Result, Context};
-use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature};
-use bip32::{DerivationPath, ExtendedPrivateKey, Seed};
-use webauthn_rs::prelude::*;
+
+// src/lib.rs
+use bip39::{Mnemonic, Language};
+use bitcoincore_lib::util::bip32::{ExtendedPrivKey, ExtendedPubKey};
 use serde::{Serialize, Deserialize};
+use thiserror::Error;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WalletConfig {
-    pub passkey_created: bool,
-    pub master_public_key: Option<Vec<u8>>,
+#[derive(Error, Debug)]
+pub enum WalletError {
+    #[error("Mnemonic generation failed")]
+    MnemonicError,
+    #[error("Key derivation failed")]
+    DerivationError,
+    #[error("Passkey verification failed")]
+    PasskeyError,
 }
 
-pub struct HDWallet {
-    master_key: ExtendedPrivateKey,
-    derived_addresses: HashMap<u32, Keypair>,
-    config: WalletConfig,
+#[derive(Serialize, Deserialize)]
+pub struct Wallet {
+    master_key: ExtendedPrivKey,
+    accounts: Vec<Account>,
+    passkey_id: String,
 }
 
-impl HDWallet {
-    pub fn new() -> Result<Self> {
-        // Initialize wallet configuration
-        let config = Self::load_or_create_config()?;
-        
-        // If no passkey exists, return a wallet ready for initial setup
-        if !config.passkey_created {
-            return Ok(Self {
-                master_key: ExtendedPrivateKey::new(&[0; 32])?, 
-                derived_addresses: HashMap::new(),
-                config,
-            });
-        }
+#[derive(Serialize, Deserialize)]
+pub struct Account {
+    index: u32,
+    address: String,
+    public_key: String,
+}
 
-        // If passkey exists, load the existing master key
-        let master_seed = Self::load_master_seed()?;
-        let master_key = ExtendedPrivateKey::from_seed(&master_seed)?;
+impl Wallet {
+    pub fn new(passkey_id: String) -> Result<Self, WalletError> {
+        // Generate new mnemonic
+        let mnemonic = Mnemonic::new(bip39::MnemonicType::Words12, Language::English)
+            .map_err(|_| WalletError::MnemonicError)?;
+            
+        // Generate master key
+        let seed = mnemonic.to_seed("");
+        let master_key = ExtendedPrivKey::new_master(bitcoin::Network::Bitcoin, &seed)
+            .map_err(|_| WalletError::DerivationError)?;
 
-        Ok(Self {
+        Ok(Wallet {
             master_key,
-            derived_addresses: HashMap::new(),
-            config,
+            accounts: vec![],
+            passkey_id,
         })
     }
 
-    pub fn create_passkey(&mut self, passkey_credential: &[u8]) -> Result<Vec<u8>> {
-        // Generate master seed from passkey
-        let master_seed = Self::generate_seed_from_passkey(passkey_credential)?;
+    pub fn add_account(&mut self) -> Result<Account, WalletError> {
+        let index = self.accounts.len() as u32;
         
-        // Derive master key
-        let master_key = ExtendedPrivateKey::from_seed(&master_seed)?;
+        // Derive new key pair
+        let child_key = self.master_key
+            .derive_priv(&bitcoin::util::bip32::DerivationPath::from_str(&format!("m/44'/0'/0'/0/{}", index))?)
+            .map_err(|_| WalletError::DerivationError)?;
+            
+        let public_key = ExtendedPubKey::from_private(&child_key);
         
-        // Generate first derived address
-        let first_address_path = DerivationPath::from_str("m/44'/0'/0'/0/0")?;
-        let first_keypair = self.derive_address(first_address_path)?;
-
-        // Update configuration
-        self.config.passkey_created = true;
-        self.config.master_public_key = Some(first_keypair.public.to_bytes().to_vec());
+        let account = Account {
+            index,
+            address: public_key.to_string(),
+            public_key: hex::encode(public_key.public_key.serialize()),
+        };
         
-        // Save configuration and seed
-        Self::save_master_seed(&master_seed)?;
-        Self::save_config(&self.config)?;
-
-        Ok(first_keypair.public.to_bytes().to_vec())
+        self.accounts.push(account.clone());
+        Ok(account)
     }
+}
 
-    pub fn authenticate_passkey(&mut self, passkey_credential: &[u8]) -> Result<Vec<u8>> {
-        // Verify passkey and retrieve existing wallet
-        let master_seed = Self::generate_seed_from_passkey(passkey_credential)?;
+// src/passkey.rs
+use webauthn_rs::{
+    Webauthn, 
+    AuthenticatorSelection,
+    UserVerificationPolicy,
+};
+
+pub struct PasskeyAuth {
+    webauthn: Webauthn,
+}
+
+impl PasskeyAuth {
+    pub fn new() -> Self {
+        let webauthn = Webauthn::new(
+            "HD Wallet",
+            "wallet.example.com",
+            AuthenticatorSelection {
+                require_resident_key: true,
+                user_verification: UserVerificationPolicy::Required,
+                ..Default::default()
+            },
+        );
         
-        // Verify seed matches existing configuration
-        // In a real implementation, add cryptographic verification
-        
-        let master_key = ExtendedPrivateKey::from_seed(&master_seed)?;
-        self.master_key = master_key;
-
-        // Return existing master public key
-        self.config.master_public_key
-            .clone()
-            .context("No existing wallet found")
+        PasskeyAuth { webauthn }
     }
-
-    pub fn derive_address(&mut self, path: DerivationPath) -> Result<Keypair> {
-        let child_key = self.master_key.derive_child_key(path)?;
-        let keypair = Keypair::from_bytes(&child_key.to_bytes())?;
-        
-        // Store derived address
-        let index = self.derived_addresses.len() as u32;
-        self.derived_addresses.insert(index, keypair.clone());
-
-        Ok(keypair)
-    }
-
-    pub fn remove_address(&mut self, index: u32) -> Result<()> {
-        self.derived_addresses.remove(&index)
-            .context("Address index not found")?;
-        Ok(())
-    }
-
     
-    fn save_config(config: &WalletConfig) -> Result<()> {
-        // Implement persistent storage
-        Ok(())
+    pub async fn register(&self, user_id: &str, username: &str) -> Result<String, WalletError> {
+        let (challenge, state) = self.webauthn
+            .generate_challenge_register_options(user_id, username)
+            .map_err(|_| WalletError::PasskeyError)?;
+            
+        // Store state and return challenge to client
+        // Implementation details...
+        
+        Ok(challenge)
     }
+    
+    pub async fn verify(&self, response: &str) -> Result<bool, WalletError> {
+        // Verify passkey response
+        // Implementation details...
+        Ok(true)
+    }
+}
 
-    fn load_master_seed() -> Result<Seed> {
-        // Implement secure seed retrieval
-        Err(anyhow::anyhow!("Not implemented"))
-    }
+// src/main.rs
+use warp::Filter;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
-    fn save_master_seed(seed: &Seed) -> Result<()> {
-        // Implement secure seed storage
-        Ok(())
-    }
+#[derive(Clone)]
+struct WalletState {
+    wallets: Arc<Mutex<HashMap<String, Wallet>>>,
+    passkey_auth: Arc<PasskeyAuth>,
+}
+
+#[tokio::main]
+async fn main() {
+    let state = WalletState {
+        wallets: Arc::new(Mutex::new(HashMap::new())),
+        passkey_auth: Arc::new(PasskeyAuth::new()),
+    };
+
+    let api = warp::path("api")
+        .and(warp::path("wallet"))
+        .and(with_state(state.clone()))
+        .and(warp::post())
+        .and_then(handle_request);
+
+    warp::serve(api)
+        .run(([127, 0, 0, 1], 3030))
+        .await;
 }
