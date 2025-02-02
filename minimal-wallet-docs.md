@@ -25,8 +25,8 @@ hd-wallet-passkey/
 
 1. Create a new Rust project:
 ```bash
-cargo new hd-wallet-passkey
-cd hd-wallet-passkey
+cargo new wallet_passkey
+cd wallet_passkey
 ```
 
 2. Add dependencies to `Cargo.toml`:
