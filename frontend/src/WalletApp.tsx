@@ -43,15 +43,7 @@ const WalletApp = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-6 w-6" />
-            HD Wallet with Passkey
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div
           {!isAuthenticated ? (
             <div className="text-center">
               <Button 
