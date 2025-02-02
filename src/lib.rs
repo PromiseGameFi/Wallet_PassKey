@@ -94,6 +94,7 @@ impl PasskeyAuth {
         PasskeyAuth { webauthn }
     }
     
+    
     pub async fn register(&self, user_id: &str, username: &str) -> Result<String, WalletError> {
         let (challenge, state) = self.webauthn
             .generate_challenge_register_options(user_id, username)
