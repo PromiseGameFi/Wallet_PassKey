@@ -4,14 +4,25 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tiny-bip39 = "1.0"
-bitcoincore-lib = "0.27"
-hex = "0.4"
+# Bitcoin and HD wallet dependencies
+bitcoin = "0.29"
+bip39 = "2.0"
+bip32 = "0.5"
+bitcoin_hashes = "0.11"
+
+# Serialization and JSON
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# Web and async
 tokio = { version = "1.0", features = ["full"] }
 warp = "0.3"
+
+# Authentication
 webauthn-rs = "0.3"
+
+# Error handling and utilities
 thiserror = "1.0"
 tracing = "0.1"
+hex = "0.4"
 ring = "0.16"
