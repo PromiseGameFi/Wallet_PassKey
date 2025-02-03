@@ -22,7 +22,7 @@ tokio = { version = "1.0", features = ["full"] }
 warp = "0.3"
 
 # Authentication
-webauthn-rs = "0.3"
+webauthn-rs = "0.5.1"
 
 # Error handling and utilities
 thiserror = "1.0"
