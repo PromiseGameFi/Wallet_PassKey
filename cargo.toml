@@ -10,7 +10,7 @@ bip39 = "2.0"
 bip32 = "0.5"
 bitcoin_hashes = "0.11"
 
-openssl-sys = "0.9.105"  # or a newer version
+openssl-sys = "0.9"  # or a newer version
 openssl = "0.10.70"         # optional, for a higher-level interface
 
 # Serialization and JSON
