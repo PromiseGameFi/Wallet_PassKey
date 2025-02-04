@@ -60,8 +60,7 @@ impl Wallet {
 // src/passkey.rs
 use webauthn_rs::{
     Webauthn, 
-    AuthenticatorSelection,
-    UserVerificationPolicy,
+    
 };
 
 pub struct PasskeyAuth {
