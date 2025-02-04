@@ -113,7 +113,10 @@ impl PasskeyAuth {
     }
 }
 
-
+// src/main.rs
+use warp::Filter;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[derive(Clone)]
 struct WalletState {
@@ -128,4 +131,13 @@ async fn main() {
         passkey_auth: Arc::new(PasskeyAuth::new()),
     };
 
+    let api = warp::path("api")
+        .and(warp::path("wallet"))
+        .and(with_state(state.clone()))
+        .and(warp::post())
+        .and_then(handle_request);
+
+    warp::serve(api)
+        .run(([127, 0, 0, 1], 3030))
+        .await;
 }
