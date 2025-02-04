@@ -50,7 +50,18 @@ impl Wallet {
     pub fn add_account(&mut self) -> Result<Account, WalletError> {
         let index = self.accounts.len() as u32;
         
-       
+        // Derive new key pair
+        let child_key = self.master_key
+            .derive_priv(&bitcoin::util::bip32::DerivationPath::from_str(&format!("m/44'/0'/0'/0/{}", index))?)
+            .map_err(|_| WalletError::DerivationError)?;
+            
+        let public_key = ExtendedPubKey::from_private(&child_key);
+        
+        let account = Account {
+            index,
+            address: public_key.to_string(),
+            public_key: hex::encode(public_key.public_key.serialize()),
+        };
         
         self.accounts.push(account.clone());
         Ok(account)
@@ -60,7 +71,8 @@ impl Wallet {
 // src/passkey.rs
 use webauthn_rs::{
     Webauthn, 
-    
+    AuthenticatorSelection,
+    UserVerificationPolicy,
 };
 
 pub struct PasskeyAuth {
