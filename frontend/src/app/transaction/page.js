@@ -1,10 +1,10 @@
-import Dashboard from '../components/Dashboard';
+import Transaction from '../components/Transaction';
 
-export default function DashboardPage() {
+export default function TransactionPage() {
 	return (
 		<div>
-			<h1>Dashboard</h1>
-			<Dashboard />
+			<h1>Transaction</h1>
+			<Transaction />
 		</div>
 	);
 }
