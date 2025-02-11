@@ -9,7 +9,7 @@ This project is an HD (Hierarchical Deterministic) wallet that uses passkey-base
 
 ## Setup
 1. Clone the repository.
-2. Run the backend: `cd backend && go run cmd/main.go`.
+2. Run the backend: `cd backend && go run cmd/main.rs`.
 3. Run the frontend: `cd frontend && npm start`.
 
 ## License
