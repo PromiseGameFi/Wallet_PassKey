@@ -38,9 +38,5 @@ func generateMasterSeed() ([]byte, error) {
 }
 
 func deriveMasterKey(seed []byte) (*accounts.Account, error) {
-	masterKey, err := hd.NewMaster(seed, []byte("m/44'/60'/0'/0"))
-	if err != nil {
-		return nil, err
-	}
-	return masterKey, nil
+
 }
