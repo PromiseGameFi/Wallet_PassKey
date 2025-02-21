@@ -15,15 +15,6 @@ func NewHDWallet() (*HDWallet, error) {
 		return nil, err
 	}
 
-	masterKey, err := deriveMasterKey(seed)
-	if err != nil {
-		return nil, err
-	}
-
-	return &HDWallet{
-		MasterSeed: seed,
-		MasterKey:  masterKey,
-	}, nil
 }
 
 func generateMasterSeed() ([]byte, error) {
