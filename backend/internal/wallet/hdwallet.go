@@ -1,8 +1,6 @@
 package wallet
 
 import (
-	"crypto/rand"
-
 	"github.com/ethereum/go-ethereum/accounts"
 )
 
@@ -29,12 +27,7 @@ func NewHDWallet() (*HDWallet, error) {
 }
 
 func generateMasterSeed() ([]byte, error) {
-	seed := make([]byte, 64)
-	_, err := rand.Read(seed)
-	if err != nil {
-		return nil, err
-	}
-	return seed, nil
+
 }
 
 func deriveMasterKey(seed []byte) (*accounts.Account, error) {
