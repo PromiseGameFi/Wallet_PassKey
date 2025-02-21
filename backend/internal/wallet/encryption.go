@@ -17,12 +17,7 @@ func EncryptSeed(seed []byte, key []byte) ([]byte, error) {
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, err
-	}
 
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], seed)
-
-	return ciphertext, nil
 }
 
 func DecryptSeed(ciphertext []byte, key []byte) ([]byte, error) {
